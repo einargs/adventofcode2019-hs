@@ -1,3 +1,5 @@
+{-# LANGUAGE NamedFieldPuns #-}
+
 data Program = Program { instruction_pointer  :: Int
                        , instruction :: [Int]
                        } deriving Show
@@ -27,21 +29,21 @@ updateList n v l = a ++ [v] ++ b
     where (a, _:b) = splitAt n l
 
 execute :: Program -> Program
-execute p 
+execute p@Program { instruction_pointer = pntr, instruction = instructions }
     | opcode == 1   = execute $ new_p (+)
     | opcode == 2   = execute $ new_p (*)
     | opcode == 99  = p
     | otherwise     = undefined
-    where opcode = instruction p !! instruction_pointer p
-          param_1_idx = instruction p !! (instruction_pointer p + 1)
-          param_2_idx = instruction p !! (instruction_pointer p + 2)
-          output_idx = instruction p !! (instruction_pointer p + 3)
-          a = instruction p !! param_1_idx
-          b = instruction p !! param_2_idx
+    where opcode = instructions !! pntr
+          deref idx = instructions !! (instructions !! idx)
+          a = deref $ pntr + 1
+          b = deref $ pntr + 2
+          output_idx = instructions !! (pntr + 3)
           next_idx = instruction_pointer p + 4
-          new_p op = Program { instruction_pointer = next_idx
-                             , instruction = updateList output_idx (op a b) $ instruction p
-                             }
+          new_p op = Program
+            { instruction_pointer = next_idx
+            , instruction = updateList output_idx (op a b) instructions
+            }
 
 solveP1 :: Program -> Int
 solveP1 p = instruction p !! 0
