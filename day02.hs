@@ -40,29 +40,24 @@ execute p
           b = instruction p !! param_2_idx
           next_idx = instruction_pointer p + 4
           new_p op = Program { instruction_pointer = next_idx
-                             , instruction = updateList output_idx ((op) a b) $ instruction p
+                             , instruction = updateList output_idx (op a b) $ instruction p
                              }
 
 solveP1 :: Program -> Int
 solveP1 p = instruction p !! 0
 
-solveP2' :: [(Int, Int)] -> Program -> [(Int, Int)]
-solveP2' options p
-    | result == 19690720 = [(noun, verb)]
-    | otherwise          = solveP2' (tail options) p
-    where result = solveP1 $ execute $ initProgram noun verb p
-          noun = fst $ head options
-          verb = snd $ head options
+runWith :: Program -> Int -> Int -> Program
+runWith p n v = execute $ initProgram n v p
 
 solveP2 :: Program -> Int
 solveP2 p = 100 * noun + verb
-    where x = solveP2' [(n, v) | n <- [0..99], v <- [0..99]] p
-          noun = fst $ head x
-          verb = snd $ head x
-    
+    where x = filter
+            ((==19690720) . solveP1 . uncurry (runWith p))
+            [(n, v) | n <- [0..99], v <- [0..99]]
+          (noun, verb) = head x
 
 solve :: Program -> String
-solve p = unlines (a:b:[])
+solve p = unlines [a,b]
     where a = "Part 1: " ++ (show $ solveP1 $ execute $ initProgram 12 2 p)
           b = "Part 2: " ++ (show $ solveP2 p)
 
